@@ -8,7 +8,6 @@ pub struct DbPool {
 
 impl DbPool {
     /// Creates a new `DbPool` instance.
-    ///
     /// # Returns
     ///
     /// * `Ok(DbPool)` - If the connection to the database is successful.
