@@ -49,7 +49,6 @@ mod tests {
 
         // We call DbPool::new()
         let result = DbPool::new().await;
-
         // We hope this is an error, as there is no DATABASE_URL
         assert!(result.is_err(),"Should have failed when DATABASE_URL is not defined");
     }
