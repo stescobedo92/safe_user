@@ -24,7 +24,6 @@ impl DbPool {
         let database_url = match env::var("DATABASE_URL") {
             Ok(url) => url,
             Err(e) => {
-                // convertimos el error de ambiente en un Error de configuración
                 return Err(sqlx::Error::Configuration(Box::new(e)));
             }
         };
@@ -32,7 +31,7 @@ impl DbPool {
         let pool = sqlx::mssql::MssqlPoolOptions::new()
             .max_connections(5)
             .connect(&database_url)
-            .await?; // si falla la conexión, se retorna Err automáticamente
+            .await?;
 
         Ok(DbPool { pool })
     }
