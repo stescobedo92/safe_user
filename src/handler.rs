@@ -32,15 +32,15 @@ pub async fn create_user(pool: web::Data<sqlx::Pool<sqlx::Mssql>>,new_user: web:
         r#"
         INSERT INTO [users] (
             id,
-            Identificacion,
-            Nombre,
-            Apellidos,
+            User_id,
+            Name,
+            Last_name,
             Email,
-            Edad,
-            Telefono,
-            Direccion,
-            FechaNacimiento,
-            LugarTrabajo
+            Age,
+            Phone,
+            Address,
+            BirthDate,
+            Place_birth
         )
         VALUES (
             @p1, @p2, @p3, @p4, @p5,
@@ -48,18 +48,18 @@ pub async fn create_user(pool: web::Data<sqlx::Pool<sqlx::Mssql>>,new_user: web:
         )
         "#,
         Uuid::new_v4().to_string(),
-        user.identificacion,
-        user.nombre,
-        user.apellidos,
+        user.user_id,
+        user.name,
+        user.last_name,
         user.email,
-        user.edad,
-        user.telefono,
-        user.direccion,
-        user.fecha_nacimiento,
-        user.lugar_trabajo
+        user.age,
+        user.phone,
+        user.address,
+        user.birthdate,
+        user.place_birth
     )
-        .execute(pool.get_ref())
-        .await;
+    .execute(pool.get_ref())
+    .await;
 
     match query_result {
         Ok(_) => HttpResponse::Ok().json("User created successfully."),
@@ -146,16 +146,16 @@ pub async fn get_all_users(pool: web::Data<Pool<Mssql>>) -> impl Responder {
         User,
         r#"
         SELECT
-            CAST(id AS VARCHAR(36)) AS "id?", -- Cast UUID to String
-            Identificacion        AS "identificacion!",
-            Nombre                AS "nombre!",
-            Apellidos             AS "apellidos!",
-            Email                 AS "email!",
-            Edad                  AS "edad?",
-            Telefono              AS "telefono?",
-            Direccion             AS "direccion?",
-            CONVERT(VARCHAR, FechaNacimiento, 23) AS "fecha_nacimiento!",
-            LugarTrabajo          AS "lugar_trabajo?"
+            CAST(id AS VARCHAR(36))         AS "id?", -- Cast UUID to String
+            User_id                         AS "user_id!",
+            Name                            AS "name!",
+            Last_name                       AS "last_name!",
+            Email                           AS "email!",
+            Age                             AS "age?",
+            Phone                           AS "phone?",
+            Address                         AS "address?",
+            CONVERT(VARCHAR, BirthDate, 23) AS "birthdate!",
+            Place_birth                     AS "place_birth?"
         FROM [users]
         "#
     )
@@ -165,8 +165,8 @@ pub async fn get_all_users(pool: web::Data<Pool<Mssql>>) -> impl Responder {
     match query_result {
         Ok(users) => HttpResponse::Ok().json(users),
         Err(e) => {
-            eprintln!("Error al obtener usuarios: {:?}", e);
-            HttpResponse::InternalServerError().json("Error al obtener usuarios")
+            eprintln!("Error getting users: {:?}", e);
+            HttpResponse::InternalServerError().json("Error getting users")
         }
     }
 }
@@ -195,6 +195,6 @@ pub async fn get_all_users(pool: web::Data<Pool<Mssql>>) -> impl Responder {
 /// }
 /// ```
 pub async fn protected_route() -> impl Responder {
-    HttpResponse::Ok().json("Ruta protegida, solo con token válido")
+    HttpResponse::Ok().json("Protected route, only with valid token.")
 }
 
