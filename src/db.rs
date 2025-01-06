@@ -20,7 +20,6 @@ impl DbPool {
     /// * The `DATABASE_URL` environment variable is not set.
     /// * There is an error connecting to the database.
     pub async fn new() -> Result<Self, sqlx::Error> {
-        // En lugar de .expect(), hacemos un match para devolver Err
         let database_url = match env::var("DATABASE_URL") {
             Ok(url) => url,
             Err(e) => {
