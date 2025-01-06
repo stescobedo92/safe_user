@@ -6,16 +6,6 @@ use serde::{Deserialize, Serialize};
 use std::env;
 
 /// This module provides JWT generation and validation functionalities.
-///
-/// # Example
-///
-/// ```
-/// use crate::auth::{generate_jwt, validate_jwt};
-///
-/// let token = generate_jwt(&"user123".to_string()).unwrap();
-/// let claims = validate_jwt(&token).unwrap();
-/// assert_eq!(claims.sub, "user123");
-/// ```
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,
@@ -80,5 +70,31 @@ pub async fn jwt_validator(req: ServiceRequest,credentials: BearerAuth) -> Resul
         Err(_) => {
             Err((actix_web::error::ErrorUnauthorized("Invalid token"), req))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_jwt() {
+        //Check that it doesn't fail and generate a token
+        let token = generate_jwt(&"tester".to_string()).expect("Failed to generate JWT");
+        assert!(!token.is_empty(), "Token should not be empty");
+    }
+
+    #[test]
+    fn test_validate_jwt_valido() {
+        let token = generate_jwt(&"tester".to_string()).unwrap();
+        let claims = validate_jwt(&token).expect("Failed to validate JWT");
+        assert_eq!(claims.sub, "tester");
+    }
+
+    #[test]
+    fn test_validate_jwt_invalido() {
+        // A completely invalid token
+        let result = validate_jwt("non-existent_token");
+        assert!(result.is_err(), "Validation of invalid token should fail");
     }
 }
