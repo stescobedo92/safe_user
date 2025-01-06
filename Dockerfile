@@ -8,7 +8,7 @@ COPY Cargo.toml Cargo.lock ./
 RUN cargo fetch
 
 COPY src ./src
-COPY test ./test
+COPY tests ./tests
 
 RUN cargo build --release
 
