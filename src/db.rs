@@ -60,7 +60,7 @@ mod tests {
     #[actix_web::test]
     async fn test_dbpool_new_valid() {
         // Adjust user, password, host, etc. to your environment
-        env::set_var("DATABASE_URL", "mssql://sa:tester*31@localhost:1433/master");
+        env::set_var("DATABASE_URL", "mssql://sa:Tester*31@localhost:1433/master");
 
         let result = DbPool::new().await;
         assert!(result.is_ok(),"You should have successfully connected with a valid URL and the DB running");

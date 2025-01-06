@@ -19,7 +19,7 @@ mod tests {
     /// Implement this function to set up a test pool, possibly using a Docker container or an in-memory database
     async fn setup_test_pool() -> Pool<Mssql> {
         // Here you should set up a test database. For example, with SQLx and Docker
-        let database_url = "mssql://sa:tester*31@localhost:1433/master";
+        let database_url = "mssql://sa:Tester*31@localhost:1433/master";
         Pool::<Mssql>::connect(database_url).await.expect("Failed to connect to the test database")
     }
 
