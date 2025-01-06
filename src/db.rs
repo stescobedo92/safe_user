@@ -35,3 +35,34 @@ impl DbPool {
         Ok(DbPool { pool })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    /// Checks that if DATABASE_URL does not exist, `DbPool::new()` fails.
+    #[actix_web::test]
+    async fn test_dbpool_new_missing_env() {
+        // We remove the variable to simulate that it is not defined
+        env::remove_var("DATABASE_URL");
+
+        // We call DbPool::new()
+        let result = DbPool::new().await;
+
+        // We hope this is an error, as there is no DATABASE_URL
+        assert!(result.is_err(),"Should have failed when DATABASE_URL is not defined");
+    }
+
+    /// Verify that with a valid URL and the DB active, it connects.
+    /// For this to work, you must have your MSSQL container running
+    /// and a test DB at the URL you enter.
+    #[actix_web::test]
+    async fn test_dbpool_new_valid() {
+        // Adjust user, password, host, etc. to your environment
+        env::set_var("DATABASE_URL", "mssql://sa:tester*31@localhost:1433/master");
+
+        let result = DbPool::new().await;
+        assert!(result.is_ok(),"You should have successfully connected with a valid URL and the DB running");
+    }
+}
