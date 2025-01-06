@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql-docker
+    hostname: mssql-docker
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Tester*31"
+      SA_PASSWORD: "Tester*31"
+      MSSQL_PID: "Express"
+    volumes:
+      - ./scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"Tester*31\" -Q 'SELECT 1'" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  safe_user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      mssql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: "mssql://sa:Tester*31@mssql:1433/master"
+      JWT_SECRET: "your_secret_key"
+    networks:
+      - app-network
+
+  integration_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      mssql:
+        condition: service_healthy
+      safe_user:
+        condition: service_healthy
+    entrypoint: ["cargo", "test", "--test", "integration_tests"]  # Ajusta según tus tests
+    environment:
+      DATABASE_URL: "mssql://sa:Tester*31@mssql:1433/master"
+      JWT_SECRET: "your_secret_key"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
