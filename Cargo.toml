@@ -3,6 +3,10 @@ name = "safe_user"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "safe_user"
+path = "src/lib.rs"
+
 [dependencies]
 actix-web = "4"
 actix-web-httpauth = "0.8.2"
