@@ -12,7 +12,6 @@ mod tests {
     use super::*;
     use actix_web::{test, web, App};
     use actix_web::http::StatusCode;
-    use serde_json::json;
     use uuid::Uuid;
     use chrono::NaiveDateTime;
     use sqlx::{Mssql, Pool};
