@@ -198,3 +198,122 @@ pub async fn protected_route() -> impl Responder {
     HttpResponse::Ok().json("Protected route, only with valid token.")
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{test, web, http::StatusCode, App, Responder, HttpResponse};
+    use serde_json::json;
+    use sqlx::{Pool, Mssql};
+    use std::str::FromStr;
+
+    #[derive(serde::Deserialize)]
+    struct CreateUserInput {
+        id: String,
+        user_id: String,
+        name: String,
+        last_name: String,
+        age: i32,
+        phone: String,
+        address: Option<String>,
+        birthdate: String,
+        place_birth: Option<String>,
+    }
+
+    /// Mock of the "create_user" handler with successful result (does not touch the DB).
+    async fn create_user_mock_ok(_new_user: web::Json<CreateUserInput>) -> impl Responder {
+        HttpResponse::Ok().json("User created (mock)")
+    }
+
+    /// Mock del handler "create_user" que simula un fallo genérico (no toca la BD).
+    async fn create_user_mock_err(_new_user: web::Json<CreateUserInput>) -> impl Responder {
+        HttpResponse::InternalServerError().json("Error creating user (mock)")
+    }
+
+    /// Test that verifies the /create_user route with a valid User,
+    /// simulating that the handler responds 200 OK.
+    #[actix_web::test]
+    async fn test_create_user_ok() {
+        // We set up a minimal App with the route pointing to the "ok" mock
+        let app = test::init_service(App::new().route("/create_user", web::post().to(create_user_mock_ok))).await;
+
+        // We build a User with all the required fields
+        let test_user = json!({
+            "id":"813B6B04-DFBB-4EED-B820-2372216A2367",
+            "user_id": "891009",
+            "name": "Jhon",
+            "last_name": "Doe",
+            "email":"example@example.com",
+            "age": 33,
+            "phone": "123456789",
+            "address": "Street",
+            "birthdate": "1992-05-31T00:00:00",
+            "place_birth": "Example"
+        });
+
+        // Construimos la petición POST con JSON
+        let req = test::TestRequest::post()
+            .uri("/create_user")
+            .set_json(&test_user)
+            .to_request();
+
+        // We call the endpoint
+        let resp = test::call_service(&app, req).await;
+
+        // We verify that the response is 200 OK
+        assert_eq!(resp.status(), StatusCode::OK);
+
+        // We read the body of the response
+        let body_bytes = test::read_body(resp).await;
+        let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
+
+        // We confirm that it is the mock's success message
+        assert_eq!(body_str, "\"User created (mock)\"");
+    }
+
+    /// Test that simulates that the handler fails and returns 500,
+    /// for example, if the DB rejects the insertion.
+    #[actix_web::test]
+    async fn test_create_user_err() {
+        // We set up the App pointing to the mock that simulates the error
+        let app = test::init_service(
+            App::new()
+                .route("/create_user", web::post().to(create_user_mock_err))
+        ).await;
+
+        let test_user = json!({
+            "id":"813B6B04-DFBB-4EED-B820-2372216A2367",
+            "user_id": "891009",
+            "name": "Jhon",
+            "last_name": "Doe",
+            "email":"example@example.com",
+            "age": 33,
+            "phone": "123456789",
+            "address": "Street",
+            "birthdate": "1992-05-31T00:00:00",
+            "place_birth": "Example"
+        });
+
+        let req = test::TestRequest::post()
+            .uri("/create_user")
+            .set_json(&test_user)
+            .to_request();
+
+        let resp = test::call_service(&app, req).await;
+
+        // We verify that it returns 500
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let body_bytes = test::read_body(resp).await;
+        let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
+        assert_eq!(body_str, "\"Error creating user (mock)\"");
+    }
+
+    async fn setup_test_pool() -> Pool<Mssql> {
+        // Here you should set up a test database.
+        // For the purposes of this example, I'll use a dummy connection.
+        // Replace this with the actual logic to connect to a test database.
+        let database_url = "mssql://username:password@localhost/database_name";
+        Pool::<Mssql>::connect(database_url).await.expect("Failed to connect to the database")
+    }
+}
+
