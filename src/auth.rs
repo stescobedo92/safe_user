@@ -85,14 +85,14 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_jwt_valido() {
+    fn test_validate_jwt_valid() {
         let token = generate_jwt(&"tester".to_string()).unwrap();
         let claims = validate_jwt(&token).expect("Failed to validate JWT");
         assert_eq!(claims.sub, "tester");
     }
 
     #[test]
-    fn test_validate_jwt_invalido() {
+    fn test_validate_jwt_invalid() {
         // A completely invalid token
         let result = validate_jwt("non-existent_token");
         assert!(result.is_err(), "Validation of invalid token should fail");
